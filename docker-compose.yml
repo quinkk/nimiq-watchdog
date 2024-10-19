@@ -14,7 +14,7 @@ services:
     environment:
       - NIMIQ_HOST=https://rpc-testnet.nimiqcloud.com
       - NIMIQ_PORT=443
-      - NUMIQ_USER=super
+      - NIMIQ_USER=super
       - NIMIQ_PASS=secret
       - RETRY_LIMIT=10
       - RETRY_DELAY=10
