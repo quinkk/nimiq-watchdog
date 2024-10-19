@@ -20,8 +20,9 @@ NIMIQ_HOST = os.getenv("NIMIQ_HOST", "node")
 NIMIQ_PORT = int(os.getenv("NIMIQ_PORT", 8648))
 NIMIQ_USER = os.getenv("NIMIQ_HOST", "super")
 NIMIQ_PASS = os.getenv("NIMIQ_PASS", "secret")
-usrPass = NIMIQ_USER + ":" + NIMIQ_PASS
-b64Val = base64.b64encode(usrPass)
+
+credentials = f"{NIMIQ_USER}:{NIMIQ_PASS}".encode("utf-8")
+b64Val = base64.b64encode(credentials).decode("utf-8")
 
 # Prometheus
 PROMETHEUS_PORT = os.getenv("PROMETHEUS_PORT", 12345)
