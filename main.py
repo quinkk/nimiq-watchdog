@@ -34,6 +34,7 @@ prom_current_health = Gauge(
 )
 prom_current_epoch = Gauge("nimiq_watchdog_current_epoch", "current epoch number")
 prom_current_batch = Gauge("nimiq_watchdog_current_batch", "current batch number")
+prom_is_elected = Gauge("nimiq_watchdog_is_elected", "validator is elected")
 prom_container_restarts = Counter(
     "nimiq_watchdog_container_restarts", "Number of Docker container restarts"
 )
@@ -183,6 +184,34 @@ def currentBatch():
         return None
 
 
+def isValidatorElected():
+    """
+    This function retrieves the current isValidatorElected from a Nimiq node using JSON-RPC.
+    If the request fails, it returns None.
+    """
+    url = f"{NIMIQ_HOST}:{NIMIQ_PORT}"
+    data = {"jsonrpc": "2.0", "id": 1, "method": "isValidatorElected", "params": []}
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Basic %s" % b64Val,
+    }
+
+    try:
+        response = requests.post(url, json=data, headers=headers, timeout=5)
+        if response.status_code == 200:
+            resp_data = response.json()
+            elected = resp_data.get("result", {}).get("data")
+            if elected is not None:
+                prom_is_elected.set(elected)
+            return elected
+        else:
+            logging.error(f"Error fetching isValidatorElected: HTTP {response.status_code}")
+            return None
+    except Exception as e:
+        logging.error(f"Failed to fetch isValidatorElected: {e}")
+        return None
+
+
 def main():
     logging.info("Waiting for initial sync...")
     while True:
@@ -191,6 +220,7 @@ def main():
             if consensus is not None and consensus:
                 # If consensus is established, break the loop
                 logging.info("Initial sync completed.")
+                isValidatorElected()
                 prom_initial_sync.set(1)
                 break
             else:
